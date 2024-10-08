@@ -26,7 +26,7 @@ public class Inventory {
 
     @OneToMany(mappedBy = "inventory")
     @JsonIgnore
-    private List<Rental> rentals; // The type List was missing its import
+    private List<Rental> rentals; 
 
     // Getters and Setters
 

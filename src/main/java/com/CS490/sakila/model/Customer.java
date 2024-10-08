@@ -20,20 +20,20 @@ public class Customer {
     private String lastName;
 
     @Column(name = "email")
-    private String email;  // Add email field since it's present in the schema
+    private String email;  
 
     @Column(name = "active")
-    private boolean active;  // Add active field as per schema
+    private boolean active;  
 
     @Column(name = "create_date")
-    private String createDate;  // Add create_date as it's part of the schema
+    private String createDate;  
 
     @Column(name = "last_update")
-    private String lastUpdate;  // Add last_update as per schema
+    private String lastUpdate;  
 
     @ManyToOne
     @JoinColumn(name = "address_id")
-    private Address address;  // Assuming there's an Address entity to handle foreign key
+    private Address address;  
 
     @OneToMany(mappedBy = "customer")
     @JsonIgnore

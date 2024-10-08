@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface InventoryRepository extends JpaRepository<Inventory, Integer> {
-    // You can define custom queries here if needed, for now, we're using the default CRUD methods.
+   
 }

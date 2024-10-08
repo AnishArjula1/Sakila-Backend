@@ -17,10 +17,10 @@ public interface FilmRepository extends CrudRepository<Film, Integer> {
             "GROUP BY f.film_id ORDER BY COUNT(r.rental_id) DESC LIMIT 5", nativeQuery = true)
     List<Film> findTop5ByRentals();
 
-    // Search films by title (assumed title column in film table)
+    // Search films by title 
     List<Film> findByTitleLike(String title);
 
-    // Search films by actor (using both first name and last name)
+    // Search films by actor 
     @Query(value = "SELECT f.* FROM film f " +
             "JOIN film_actor fa ON f.film_id = fa.film_id " +
             "JOIN actor a ON fa.actor_id = a.actor_id " +

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakila Movie Store</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4 text-center">Welcome to Sakila Movie Store</h1>
+
+        <!-- Top 5 Films Section -->
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Top 5 Rented Films</h3>
+                <ul id="top-5-films" class="list-group"></ul>
+            </div>
+
+            <!-- Top 5 Actors Section -->
+            <div class="col-md-6">
+                <h3>Top 5 Actors</h3>
+                <ul id="top-5-actors" class="list-group"></ul>
+            </div>
+        </div>
+
+        <!-- Film Details Section -->
+        <div id="film-details-section" class="my-4">
+            <h3>Film Details</h3>
+            <ul id="film-details" class="list-group"></ul>
+        </div>
+
+        <!-- Actor's Top 5 Rented Movies Section -->
+        <div id="actor-details-section" class="my-4">
+            <h3>Actor's Top 5 Rented Movies</h3>
+            <ul id="actor-top5-films" class="list-group"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log("Document loaded, fetching top 5 films and actors...");
+
+            // Fetch and display top 5 rented films
+            fetch('/api/films/top5')
+                .then(response => response.json())
+                .then(films => {
+                    const filmsList = document.getElementById('top-5-films');
+                    filmsList.innerHTML = ''; 
+                    films.forEach(film => {
+                        const li = document.createElement('li');
+                        li.classList.add('list-group-item');
+                        li.textContent = film.title;
+                        li.style.cursor = 'pointer';
+                        li.addEventListener('click', () => loadFilmDetails(film.filmId));  
+                        filmsList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching top 5 films:', error);
+                });
+
+            // Fetch and display top 5 actors
+            fetch('/api/actors/top5')
+                .then(response => response.json())
+                .then(actors => {
+                    const actorsList = document.getElementById('top-5-actors');
+                    actorsList.innerHTML = ''; 
+                    actors.forEach(actor => {
+                        const li = document.createElement('li');
+                        li.classList.add('list-group-item');
+                        li.textContent = `${actor.firstName} ${actor.lastName}`;
+                        li.style.cursor = 'pointer';
+                        li.addEventListener('click', () => loadActorDetails(actor.actorId));  
+                        actorsList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching top 5 actors:', error);
+                });
+
+            // Function to load film details
+            function loadFilmDetails(filmId) {
+                fetch(`/api/films/${filmId}/details`)
+                    .then(response => response.json())
+                    .then(film => {
+                        const filmDetailsList = document.getElementById('film-details');
+                        filmDetailsList.innerHTML = '';  
+                        if (film) {
+                            const details = `
+                                <li class="list-group-item"><strong>Title:</strong> ${film.title}</li>
+                                <li class="list-group-item"><strong>Description:</strong> ${film.description}</li>
+                                <li class="list-group-item"><strong>Release Year:</strong> ${film.releaseYear}</li>
+                                <li class="list-group-item"><strong>Actors:</strong> ${film.actors}</li>
+                                <li class="list-group-item"><strong>Genre:</strong> ${film.genres || 'N/A'}</li>
+                            `;
+                            filmDetailsList.innerHTML = details;
+                        } else {
+                            filmDetailsList.innerHTML = '<li class="list-group-item">No details available for this film</li>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching film details:', error);
+                    });
+            }
+
+            // Function to load actor details and their top 5 rented films
+            function loadActorDetails(actorId) {
+                fetch(`/api/actors/${actorId}/top5films`)
+                    .then(response => response.json())
+                    .then(actor => {
+                        const actorTop5FilmsList = document.getElementById('actor-top5-films');
+                        actorTop5FilmsList.innerHTML = '';  
+                        if (actor && actor.top5Films && actor.top5Films.length > 0) {
+                            actor.top5Films.forEach(filmTitle => {
+                                const li = document.createElement('li');
+                                li.classList.add('list-group-item');
+                                li.textContent = filmTitle;
+                                actorTop5FilmsList.appendChild(li);
+                            });
+                        } else {
+                            actorTop5FilmsList.innerHTML = '<li class="list-group-item">No rented films for this actor</li>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching actor details and top 5 rented films:', error);
+                    });
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

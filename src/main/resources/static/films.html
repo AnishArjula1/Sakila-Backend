@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Films Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        input {
+            margin: 10px 0;
+            padding: 5px;
+            width: 300px;
+        }
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .film-details, .rental-section {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Films</h1>
+
+    <div>
+        <label for="searchType">Search Type:</label>
+        <select id="searchType">
+            <option value="title">Title</option>
+            <option value="actor">Actor</option>
+            <option value="genre">Genre</option>
+        </select><br>
+        <label for="search">Search by film, actor, or genre:</label><br>
+        <input type="text" id="search" placeholder="Enter name, actor, or genre">
+        <button onclick="searchFilms()">Search</button>
+    </div>
+
+    <div id="search-results">
+        <h2>Search Results:</h2>
+        <ul id="results-list">
+            <!-- Search results will be inserted here dynamically -->
+        </ul>
+    </div>
+
+    <div class="film-details" id="film-details">
+        <h2>Film Details</h2>
+        <p id="film-info"></p>
+    </div>
+
+    <div class="rental-section" id="rental-section">
+        <h2>Rent this Film</h2>
+        <form onsubmit="rentFilm(event)">
+            <input type="hidden" id="filmId" value="">
+            <label for="customerId">Customer ID:</label><br>
+            <input type="number" id="customerId" placeholder="Enter customer ID" required><br>
+            <label for="staffId">Staff ID:</label><br>
+            <input type="number" id="staffId" placeholder="Enter staff ID" required><br>
+            <button type="submit">Rent Film</button>
+        </form>
+    </div>
+
+    <script>
+        // Function to search for films
+        function searchFilms() {
+            const searchQuery = document.getElementById('search').value;
+            const searchType = document.getElementById('searchType').value;
+
+            fetch(`/api/films/search?query=${searchQuery}&type=${searchType}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultsList = document.getElementById('results-list');
+                    resultsList.innerHTML = '';
+                    data.forEach(film => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<a href="#" onclick="viewFilmDetails(${film.filmId})">${film.title}</a>`;
+                        resultsList.appendChild(li);
+                    });
+                });
+        }
+
+        // Function to view film details
+        function viewFilmDetails(filmId) {
+            fetch(`/api/films/${filmId}/details`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        document.getElementById('film-info').innerText = `Title: ${data.title}, Description: ${data.description}, Release Year: ${data.releaseYear}`;
+                        document.getElementById('filmId').value = filmId;
+                        document.getElementById('rental-section').style.display = 'block';
+                    } else {
+                        alert('Film details not found.');
+                    }
+                });
+        }
+
+        // Function to rent a film
+        function rentFilm(event) {
+            event.preventDefault();
+
+            const filmId = document.getElementById('filmId').value;
+            const customerId = document.getElementById('customerId').value;
+            const staffId = document.getElementById('staffId').value;
+
+            fetch('/api/rentals/rent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    inventoryId: filmId,  // Ensure this matches your backend logic
+                    customerId: customerId,
+                    staffId: staffId,
+                    rentalDate: new Date().toISOString()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.rentalId) {
+                    alert(`Film rented successfully! Rental ID: ${data.rentalId}`);
+                } else {
+                    alert('Failed to rent the film.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+

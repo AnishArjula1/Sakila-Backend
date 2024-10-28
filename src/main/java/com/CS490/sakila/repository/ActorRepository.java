@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public interface ActorRepository extends JpaRepository<Actor, Integer> {
@@ -24,5 +25,11 @@ public interface ActorRepository extends JpaRepository<Actor, Integer> {
             "ORDER BY rentals_count DESC " +
             "LIMIT 5", nativeQuery = true)
     List<Object[]> findTop5RentedFilmsByActor(@Param("actorId") int actorId);
+    
+    
+ // ActorRepository.java
+    @Query(value = "SELECT * FROM actor_info WHERE actor_id = :actorId", nativeQuery = true)
+    Map<String, Object> findActorInfoById(@Param("actorId") int actorId);
+
 }
 

@@ -2,70 +2,86 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Films Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h2 {
-            color: #333;
-        }
-        input {
-            margin: 10px 0;
-            padding: 5px;
-            width: 300px;
-        }
-        button {
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        .film-details, .rental-section {
-            margin-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to the CSS file -->
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" crossorigin href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Search Films</h1>
-
-    <div>
-        <label for="searchType">Search Type:</label>
-        <select id="searchType">
-            <option value="title">Title</option>
-            <option value="actor">Actor</option>
-            <option value="genre">Genre</option>
-        </select><br>
-        <label for="search">Search by film, actor, or genre:</label><br>
-        <input type="text" id="search" placeholder="Enter name, actor, or genre">
-        <button onclick="searchFilms()">Search</button>
-    </div>
-
-    <div id="search-results">
-        <h2>Search Results:</h2>
-        <ul id="results-list">
-            <!-- Search results will be inserted here dynamically -->
+    <!-- Navigation Bar -->
+    <nav>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="customers.html">Customers</a></li>
+            <li><a href="films.html">Films</a></li>
         </ul>
-    </div>
+    </nav>
 
-    <div class="film-details" id="film-details">
-        <h2>Film Details</h2>
-        <p id="film-info"></p>
-    </div>
+    <header>
+        <h1>Film Rental</h1>
+    </header>
 
-    <div class="rental-section" id="rental-section">
-        <h2>Rent this Film</h2>
-        <form onsubmit="rentFilm(event)">
-            <input type="hidden" id="filmId" value="">
-            <label for="customerId">Customer ID:</label><br>
-            <input type="number" id="customerId" placeholder="Enter customer ID" required><br>
-            <label for="staffId">Staff ID:</label><br>
-            <input type="number" id="staffId" placeholder="Enter staff ID" required><br>
-            <button type="submit">Rent Film</button>
-        </form>
-    </div>
+    <main>
+        <section class="search-section">
+            <h2>Search Films</h2>
+            <form class="search-form">
+                <div class="form-group">
+                    <label for="searchType">Search Type:</label>
+                    <select id="searchType">
+                        <option value="title">Title</option>
+                        <option value="actor">Actor</option>
+                        <option value="genre">Genre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="search">Search Term:</label>
+                    <input type="text" id="search" placeholder="Enter name, actor, or genre">
+                </div>
+                <button type="button" onclick="searchFilms()" class="btn">Search</button>
+            </form>
+        </section>
+
+        <section id="search-results" class="results-section">
+            <h2>Search Results:</h2>
+            <ul id="results-list" class="results-list">
+                <!-- Search results will be inserted here dynamically -->
+            </ul>
+        </section>
+
+        <section class="film-details-section" id="film-details-section">
+            <h2>Film Details:</h2>
+            <ul id="film-details" class="film-details">
+                <!-- Film details will be inserted here dynamically -->
+            </ul>
+        </section>
+
+        <section class="rental-section" id="rental-section">
+            <h2>Rent this Film</h2>
+            <form onsubmit="rentFilm(event)" class="rental-form">
+                <input type="hidden" id="filmId" value="">
+                <div class="form-group">
+                    <label for="customerId">Customer ID:</label>
+                    <input type="number" id="customerId" placeholder="Enter customer ID" required>
+                </div>
+                <div class="form-group">
+                    <label for="staffId">Staff ID:</label>
+                    <input type="number" id="staffId" placeholder="Enter staff ID" required>
+                </div>
+                <button type="submit" class="btn">Rent Film</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Sakila Movie Store. All rights reserved.</p>
+    </footer>
 
     <script>
+        // Ensure that the rental section is hidden initially
+        document.getElementById('rental-section').style.display = 'none';
+
         // Function to search for films
         function searchFilms() {
             const searchQuery = document.getElementById('search').value;
@@ -78,9 +94,17 @@
                     resultsList.innerHTML = '';
                     data.forEach(film => {
                         const li = document.createElement('li');
-                        li.innerHTML = `<a href="#" onclick="viewFilmDetails(${film.filmId})">${film.title}</a>`;
+                        li.classList.add('results-item');
+                        const link = document.createElement('a');
+                        link.href = '#';
+                        link.textContent = film.title;
+                        link.addEventListener('click', () => viewFilmDetails(film.filmId));
+                        li.appendChild(link);
                         resultsList.appendChild(li);
                     });
+                })
+                .catch(error => {
+                    console.error('Error fetching films:', error);
                 });
         }
 
@@ -90,12 +114,27 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data) {
-                        document.getElementById('film-info').innerText = `Title: ${data.title}, Description: ${data.description}, Release Year: ${data.releaseYear}`;
-                        document.getElementById('filmId').value = filmId;
+                        const filmDetailsList = document.getElementById('film-details');
+                        filmDetailsList.innerHTML = '';
+                        const details = `
+                            <li><strong>Title:</strong> ${data.title}</li>
+                            <li><strong>Description:</strong> ${data.description}</li>
+                            <li><strong>Release Year:</strong> ${data.releaseYear}</li>
+                            <li><strong>Actors:</strong> ${data.actors}</li>
+                            <li><strong>Genre:</strong> ${data.genres || 'N/A'}</li>
+                        `;
+                        filmDetailsList.innerHTML = details;
+                        document.getElementById('film-details-section').style.display = 'block';
                         document.getElementById('rental-section').style.display = 'block';
+                        document.getElementById('filmId').value = filmId;
+                        // Scroll to film details
+                        document.getElementById('film-details-section').scrollIntoView({ behavior: 'smooth' });
                     } else {
                         alert('Film details not found.');
                     }
+                })
+                .catch(error => {
+                    console.error('Error fetching film details:', error);
                 });
         }
 
@@ -111,7 +150,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    inventoryId: filmId,  // Ensure this matches your backend logic
+                    filmId: filmId,
                     customerId: customerId,
                     staffId: staffId,
                     rentalDate: new Date().toISOString()
@@ -121,14 +160,20 @@
             .then(data => {
                 if (data.rentalId) {
                     alert(`Film rented successfully! Rental ID: ${data.rentalId}`);
+                    // Optionally reset the form or hide the rental section
+                    document.getElementById('rental-section').style.display = 'none';
                 } else {
                     alert('Failed to rent the film.');
                 }
+            })
+            .catch(error => {
+                console.error('Error renting film:', error);
             });
         }
     </script>
 </body>
 </html>
+
 
 
 

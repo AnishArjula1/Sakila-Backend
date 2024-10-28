@@ -1,6 +1,7 @@
 package com.CS490.sakila.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -20,27 +21,34 @@ public class Customer {
     private String lastName;
 
     @Column(name = "email")
-    private String email;  
+    private String email;
 
     @Column(name = "active")
-    private boolean active;  
+    private boolean active;
 
     @Column(name = "create_date")
-    private String createDate;  
+    private LocalDateTime createDate;
 
     @Column(name = "last_update")
-    private String lastUpdate;  
+    private LocalDateTime lastUpdate;
 
     @ManyToOne
     @JoinColumn(name = "address_id")
-    private Address address;  
+    private Address address;
 
-    @OneToMany(mappedBy = "customer")
+    @ManyToOne
+    @JoinColumn(name = "store_id")
+    private Store store;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.REMOVE)
     @JsonIgnore
     private List<Rental> rentals;
 
-    // Getters and Setters
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.REMOVE)
+    @JsonIgnore
+    private List<Payment> payments;  // Added for cascade delete
 
+    // Getters and Setters
     public int getCustomerId() {
         return customerId;
     }
@@ -81,19 +89,19 @@ public class Customer {
         this.active = active;
     }
 
-    public String getCreateDate() {
+    public LocalDateTime getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(String createDate) {
+    public void setCreateDate(LocalDateTime createDate) {
         this.createDate = createDate;
     }
 
-    public String getLastUpdate() {
+    public LocalDateTime getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setLastUpdate(String lastUpdate) {
+    public void setLastUpdate(LocalDateTime lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
 
@@ -105,6 +113,14 @@ public class Customer {
         this.address = address;
     }
 
+    public Store getStore() {
+        return store;
+    }
+
+    public void setStore(Store store) {
+        this.store = store;
+    }
+
     public List<Rental> getRentals() {
         return rentals;
     }
@@ -112,7 +128,20 @@ public class Customer {
     public void setRentals(List<Rental> rentals) {
         this.rentals = rentals;
     }
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
 }
+
+
+
+
+
 
 
 

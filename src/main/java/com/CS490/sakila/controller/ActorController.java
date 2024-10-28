@@ -4,9 +4,11 @@ import com.CS490.sakila.dto.ActorFilmDTO;
 import com.CS490.sakila.model.Actor;
 import com.CS490.sakila.repository.ActorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.ArrayList;
@@ -50,6 +52,18 @@ public class ActorController {
 
         return new ActorFilmDTO(actor.get().getFirstName(), actor.get().getLastName(), filmTitles);
     }
+    
+ // ActorController.java
+    @GetMapping("/actors/{actor_id}/info")
+    public ResponseEntity<Map<String, Object>> getActorInfo(@PathVariable("actor_id") int actorId) {
+        Map<String, Object> actorInfo = actorRepository.findActorInfoById(actorId);
+
+        if (actorInfo == null || actorInfo.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(actorInfo);
+    }
+
 }
 
 

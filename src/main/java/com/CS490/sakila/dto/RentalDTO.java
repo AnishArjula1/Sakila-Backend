@@ -3,54 +3,56 @@ package com.CS490.sakila.dto;
 import java.time.LocalDateTime;
 
 public class RentalDTO {
-    private int rentalId;
-    private int inventoryId;  // Add inventory ID to link the rental
-    private int customerId;
-    private int staffId;
+    private Integer rentalId;
+    private Integer filmId; // Added filmId
+    private Integer customerId;
+    private Integer staffId;
     private LocalDateTime rentalDate;
+    private LocalDateTime returnDate;
 
     // Constructors
     public RentalDTO() {}
 
-    public RentalDTO(int rentalId, int inventoryId, int customerId, int staffId, LocalDateTime rentalDate) {
+    public RentalDTO(Integer rentalId, Integer filmId, Integer customerId, Integer staffId, LocalDateTime rentalDate, LocalDateTime returnDate) {
         this.rentalId = rentalId;
-        this.inventoryId = inventoryId;
+        this.filmId = filmId;
         this.customerId = customerId;
         this.staffId = staffId;
         this.rentalDate = rentalDate;
+        this.returnDate = returnDate;
     }
 
     // Getters and Setters
 
-    public int getRentalId() {
+    public Integer getRentalId() {
         return rentalId;
     }
 
-    public void setRentalId(int rentalId) {
+    public void setRentalId(Integer rentalId) {
         this.rentalId = rentalId;
     }
 
-    public int getInventoryId() {
-        return inventoryId;
+    public Integer getFilmId() { // Added getter
+        return filmId;
     }
 
-    public void setInventoryId(int inventoryId) {
-        this.inventoryId = inventoryId;
+    public void setFilmId(Integer filmId) { // Added setter
+        this.filmId = filmId;
     }
 
-    public int getCustomerId() {
+    public Integer getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(int customerId) {
+    public void setCustomerId(Integer customerId) {
         this.customerId = customerId;
     }
 
-    public int getStaffId() {
+    public Integer getStaffId() {
         return staffId;
     }
 
-    public void setStaffId(int staffId) {
+    public void setStaffId(Integer staffId) {
         this.staffId = staffId;
     }
 
@@ -60,6 +62,26 @@ public class RentalDTO {
 
     public void setRentalDate(LocalDateTime rentalDate) {
         this.rentalDate = rentalDate;
+    }
+
+    public LocalDateTime getReturnDate() {
+        return returnDate;
+    }
+
+    public void setReturnDate(LocalDateTime returnDate) {
+        this.returnDate = returnDate;
+    }
+
+    @Override
+    public String toString() {
+        return "RentalDTO{" +
+                "rentalId=" + rentalId +
+                ", filmId=" + filmId +
+                ", customerId=" + customerId +
+                ", staffId=" + staffId +
+                ", rentalDate=" + rentalDate +
+                ", returnDate=" + returnDate +
+                '}';
     }
 }
 

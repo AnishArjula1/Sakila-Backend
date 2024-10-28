@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Customer</title>
+</head>
+<body>
+    <form id="customerForm" action="/api/customers/add" method="POST">
+        <label for="cityDropdown">Select City:</label>
+        <select id="cityDropdown" name="cityId" required></select>
+        
+        <!-- Other form fields -->
+        <label for="storeId">Store ID:</label>
+        <input type="number" id="storeId" name="storeId" required>
+
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" name="firstName" required>
+
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" name="lastName" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email">
+
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" required>
+
+        <label for="address2">Address Line 2:</label>
+        <input type="text" id="address2" name="address2">
+
+        <label for="state">State:</label>
+        <input type="text" id="state" name="state" required>
+
+        <label for="postalCode">Postal Code:</label>
+        <input type="text" id="postalCode" name="postalCode" required>
+
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" name="phone" required>
+
+        <button type="submit">Add Customer</button>
+    </form>
+
+    <script>
+        // Fetch cities from the backend and populate the dropdown
+        async function loadCities() {
+            try {
+                const response = await fetch('/api/cities');
+                const cities = await response.json();
+                const cityDropdown = document.getElementById('cityDropdown');
+
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.cityId;   // Assign cityId as the option's value
+                    option.textContent = city.city; // Display city name
+                    cityDropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching cities:', error);
+            }
+        }
+
+        // Call the function to load cities on page load
+        window.onload = loadCities;
+    </script>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Customers</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" crossorigin href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="customers.html">Customers</a></li>
+            <li><a href="films.html">Films</a></li>
+        </ul>
+    </nav>
+
+    <header>
+        <h1>Customer Management</h1>
+    </header>
+
+    <main>
+        <!-- Search Functionality -->
+        <section class="search-section">
+            <h2>Search Customers</h2>
+            <form onsubmit="searchCustomers(event)" class="search-form">
+                <div class="form-group">
+                    <label for="searchField">Search by:</label>
+                    <select id="searchField">
+                        <option value="customerId">Customer ID</option>
+                        <option value="firstName">First Name</option>
+                        <option value="lastName">Last Name</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="searchQuery">Search Term:</label>
+                    <input type="text" id="searchQuery" placeholder="Enter search term">
+                </div>
+                <button type="submit" class="btn">Search</button>
+            </form>
+        </section>
+
+        <!-- Customer List with Pagination and Edit/Delete Options -->
+        <section class="customer-list-section">
+            <h2>Customer List</h2>
+            <div id="customerList" class="customer-list"></div>
+            <div class="pagination-buttons">
+                <button onclick="loadCustomers(currentPage - 1)" class="btn">Previous</button>
+                <button onclick="loadCustomers(currentPage + 1)" class="btn">Next</button>
+            </div>
+        </section>
+
+        <!-- Add/Edit Customer Form -->
+        <section class="add-customer-section" id="addEditCustomerSection">
+            <h2 id="customer-form-heading">Add/Edit Customer</h2>
+            <form class="customer-form">
+                <!-- All form fields -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name:</label>
+                        <input type="text" id="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name:</label>
+                        <input type="text" id="lastName" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email">
+                </div>
+
+                <h3>Address Information</h3>
+                <div class="form-group">
+                    <label for="address">Address:</label>
+                    <input type="text" id="address" required>
+                </div>
+                <div class="form-group">
+                    <label for="address2">Address 2 (optional):</label>
+                    <input type="text" id="address2">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="state">State:</label>
+                        <input type="text" id="state" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cityId">City:</label>
+                        <select id="cityId" required></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="postalCode">Postal Code:</label>
+                        <input type="text" id="postalCode">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone:</label>
+                        <input type="text" id="phone" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="storeId">Store ID:</label>
+                    <input type="number" id="storeId" required>
+                </div>
+                <button type="submit" class="btn" id="customer-form-button">Add Customer</button>
+                <button type="button" class="btn btn-cancel" id="cancel-edit-button" style="display: none;" onclick="cancelEdit()">Cancel</button>
+            </form>
+        </section>
+
+        <!-- Return Rental Section -->
+        <section class="return-rental-section">
+            <h2>Return Rental</h2>
+            <form onsubmit="returnRental(event)" class="return-form">
+                <div class="form-group">
+                    <label for="rentalId">Rental ID:</label>
+                    <input type="number" id="rentalId" placeholder="Enter Rental ID" required>
+                </div>
+                <div class="form-group">
+                    <label for="inventoryId">Inventory ID:</label>
+                    <input type="number" id="inventoryId" placeholder="Enter Inventory ID" required>
+                </div>
+                <div class="form-group">
+                    <label for="returnCustomerId">Customer ID:</label>
+                    <input type="number" id="returnCustomerId" placeholder="Enter Customer ID" required>
+                </div>
+                <div class="form-group">
+                    <label for="returnStaffId">Staff ID:</label>
+                    <input type="number" id="returnStaffId" placeholder="Enter Staff ID" required>
+                </div>
+                <button type="submit" class="btn">Return Rental</button>
+            </form>
+            <div id="return-status"></div>
+        </section>
+
+        <!-- Customer Rental History Section -->
+        <section class="rental-history-section">
+            <h2>Customer Rental History</h2>
+            <form onsubmit="getRentalHistory(event)" class="rental-history-form">
+                <div class="form-group">
+                    <label for="historyCustomerId">Customer ID:</label>
+                    <input type="number" id="historyCustomerId" placeholder="Enter Customer ID" required>
+                </div>
+                <button type="submit" class="btn">Get Rental History</button>
+            </form>
+            <div id="rental-history"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Sakila DVD Rental. All rights reserved.</p>
+    </footer>
+    <script>
+        let currentPage = 0;
+        let isEditMode = false;
+        let editCustomerId = null;
+
+        // Populate city dropdown with city name and ID
+        async function populateCities() {
+            try {
+                const response = await fetch('/api/cities');
+                const cities = await response.json();
+                const citySelect = document.getElementById('cityId');
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.cityId;
+                    option.text = city.city;
+                    citySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching cities:', error);
+            }
+        }
+
+        // Load cities on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            populateCities();
+            loadCustomers(0);
+        });
+
+        // Fetch and display customers with pagination
+        async function loadCustomers(page) {
+            currentPage = Math.max(page, 0);
+            try {
+                const response = await fetch(`/api/customers?page=${currentPage}&size=5`);
+                const customers = await response.json();
+                displayCustomers(customers);
+            } catch (error) {
+                console.error('Error fetching customers:', error);
+            }
+        }
+
+        // Display customers with edit and delete options
+        function displayCustomers(customers) {
+            const customerList = document.getElementById('customerList');
+            customerList.innerHTML = '';
+            customers.content.forEach(customer => {
+                const customerItem = document.createElement('div');
+                customerItem.classList.add('customer-item');
+
+                const customerInfo = document.createElement('p');
+                customerInfo.textContent = `${customer.firstName} ${customer.lastName} - ID: ${customer.customerId}`;
+                customerItem.appendChild(customerInfo);
+
+                const buttonGroup = document.createElement('div');
+                buttonGroup.classList.add('button-group');
+
+                const editButton = document.createElement('button');
+                editButton.textContent = 'Edit';
+                editButton.classList.add('btn', 'btn-edit');
+                editButton.onclick = () => editCustomer(customer.customerId);
+                buttonGroup.appendChild(editButton);
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('btn', 'btn-delete');
+                deleteButton.onclick = () => deleteCustomer(customer.customerId);
+                buttonGroup.appendChild(deleteButton);
+
+                customerItem.appendChild(buttonGroup);
+                customerList.appendChild(customerItem);
+            });
+        }
+
+        // Get customer data from the form for add or update
+        function getCustomerFormData() {
+            return {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                address: document.getElementById('address').value,
+                address2: document.getElementById('address2').value,
+                state: document.getElementById('state').value,
+                cityId: document.getElementById('cityId').value,
+                postalCode: document.getElementById('postalCode').value,
+                phone: document.getElementById('phone').value,
+                storeId: document.getElementById('storeId').value
+            };
+        }
+
+        // Add or update customer based on mode
+        document.querySelector('.customer-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (isEditMode) {
+                updateCustomer();
+            } else {
+                addCustomer();
+            }
+        });
+
+        // Add customer function
+        async function addCustomer() {
+            const data = getCustomerFormData();
+
+            try {
+                const response = await fetch('/api/customers/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                alert(await response.text());
+                loadCustomers(currentPage);
+                resetForm();
+            } catch (error) {
+                console.error('Error adding customer:', error);
+                alert('Failed to add customer.');
+            }
+        }
+
+        // Edit customer function - populate form with customer data for updating
+        async function editCustomer(customerId) {
+            try {
+                const response = await fetch(`/api/customers/${customerId}`);
+                const customer = await response.json();
+
+                document.getElementById('firstName').value = customer.firstName;
+                document.getElementById('lastName').value = customer.lastName;
+                document.getElementById('email').value = customer.email;
+                document.getElementById('address').value = customer.address.address;
+                document.getElementById('address2').value = customer.address.address2;
+                document.getElementById('state').value = customer.address.district;
+                document.getElementById('cityId').value = customer.address.city.cityId;
+                document.getElementById('postalCode').value = customer.address.postalCode;
+                document.getElementById('phone').value = customer.address.phone;
+                document.getElementById('storeId').value = customer.store.storeId;
+
+                isEditMode = true;
+                editCustomerId = customerId;
+                document.getElementById('customer-form-heading').textContent = 'Edit Customer';
+                document.getElementById('customer-form-button').textContent = 'Update Customer';
+                document.getElementById('cancel-edit-button').style.display = 'inline-block';
+
+                // Scroll to the Add/Edit Customer section
+                document.getElementById('addEditCustomerSection').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error('Error fetching customer data:', error);
+            }
+        }
+
+        // Update customer function
+        async function updateCustomer() {
+            const data = getCustomerFormData();
+
+            try {
+                const response = await fetch(`/api/customers/update/${editCustomerId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                alert(await response.text());
+                loadCustomers(currentPage);
+                resetForm();
+            } catch (error) {
+                console.error('Error updating customer:', error);
+                alert('Failed to update customer.');
+            }
+        }
+
+        // Reset form to add customer mode
+        function resetForm() {
+            document.querySelector('.customer-form').reset();
+            isEditMode = false;
+            editCustomerId = null;
+            document.getElementById('customer-form-heading').textContent = 'Add/Edit Customer';
+            document.getElementById('customer-form-button').textContent = 'Add Customer';
+            document.getElementById('cancel-edit-button').style.display = 'none';
+        }
+
+        // Cancel edit mode
+        function cancelEdit() {
+            resetForm();
+        }
+
+        // Delete customer function
+        async function deleteCustomer(customerId) {
+            if (confirm('Are you sure you want to delete this customer?')) {
+                try {
+                    const response = await fetch(`/api/customers/delete/${customerId}`, {
+                        method: 'DELETE'
+                    });
+                    alert(await response.text());
+                    loadCustomers(currentPage);
+                } catch (error) {
+                    console.error('Error deleting customer:', error);
+                    alert('Failed to delete customer.');
+                }
+            }
+        }
+
+        // Search customers by ID, first name, or last name
+        async function searchCustomers(event) {
+            event.preventDefault();
+            const searchField = document.getElementById('searchField').value;
+            const searchQuery = document.getElementById('searchQuery').value;
+            const url = `/api/customers/search?field=${searchField}&query=${searchQuery}&page=${currentPage}&size=5`;
+
+            try {
+                const response = await fetch(url);
+                const customers = await response.json();
+                displayCustomers(customers);
+            } catch (error) {
+                console.error('Error searching customers:', error);
+            }
+        }
+
+        // Function to handle rental return
+        async function returnRental(event) {
+            event.preventDefault();
+
+            const rentalId = document.getElementById('rentalId').value;
+            const inventoryId = document.getElementById('inventoryId').value;
+            const customerId = document.getElementById('returnCustomerId').value;
+            const staffId = document.getElementById('returnStaffId').value;
+
+            const requestBody = {
+                inventoryId: inventoryId,
+                customerId: customerId,
+                staffId: staffId
+            };
+
+            try {
+                const response = await fetch(`/api/rentals/return/${rentalId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (response.ok) {
+                    const result = await response.text();
+                    document.getElementById('return-status').innerHTML = `
+                        <p class="success-message">${result}</p>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    document.getElementById('return-status').innerHTML = `
+                        <p class="error-message">Failed to return rental: ${errorText}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error processing return:', error);
+                document.getElementById('return-status').innerHTML = `
+                    <p class="error-message">An error occurred while processing the return.</p>
+                `;
+            }
+        }
+
+        // Function to get a customer's rental history
+        async function getRentalHistory(event) {
+            event.preventDefault();
+
+            const customerId = document.getElementById('historyCustomerId').value;
+
+            try {
+                const response = await fetch(`/api/customers/${customerId}/details`);
+                if (response.ok) {
+                    const customerDetails = await response.json();
+                    displayRentalHistory(customerDetails.rentalHistory);
+                } else {
+                    const errorText = await response.text();
+                    document.getElementById('rental-history').innerHTML = `
+                        <p class="error-message">Error fetching rental history: ${errorText}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching rental history:', error);
+                document.getElementById('rental-history').innerHTML = `
+                    <p class="error-message">An error occurred while fetching rental history.</p>
+                `;
+            }
+        }
+
+        // Function to display rental history without film title
+        function displayRentalHistory(rentals) {
+            const rentalHistoryDiv = document.getElementById('rental-history');
+            rentalHistoryDiv.innerHTML = '';
+
+            if (!rentals || rentals.length === 0) {
+                rentalHistoryDiv.innerHTML = '<p>No rental history found for this customer.</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.classList.add('rental-history-table');
+
+            const thead = document.createElement('thead');
+            thead.innerHTML = `
+                <tr>
+                    <th>Rental ID</th>
+                    <th>Rental Date</th>
+                    <th>Return Date</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            rentals.forEach(rental => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${rental.rentalId}</td>
+                    <td>${new Date(rental.rentalDate).toLocaleDateString()}</td>
+                    <td>${rental.returnDate ? new Date(rental.returnDate).toLocaleDateString() : 'Not Returned'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+
+            rentalHistoryDiv.appendChild(table);
+        }
+    </script>
+</body>
+</html>
+
+
+
+

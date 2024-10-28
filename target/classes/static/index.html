@@ -2,44 +2,71 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sakila Movie Store</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" crossorigin href="https://fonts.gstatic.com">
+    <!-- Updated fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1 class="my-4 text-center">Welcome to Sakila Movie Store</h1>
+    <!-- Navigation Bar -->
+    <nav>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="customers.html">Customers</a></li>
+            <li><a href="films.html">Films</a></li>
+        </ul>
+    </nav>
 
-        <!-- Top 5 Films Section -->
-        <div class="row">
-            <div class="col-md-6">
-                <h3>Top 5 Rented Films</h3>
+    <header>
+        <h1>Sakila Movie Store</h1>
+    </header>
+
+    <main>
+        <section class="home-section">
+            <div class="content">
+                <p>Discover and manage your favorite movies with ease.</p>
+                <a href="customers.html" class="btn">Manage Customers</a>
+                <a href="films.html" class="btn">Browse Films</a>
+            </div>
+        </section>
+
+        <!-- Top 5 Films and Actors Section -->
+        <section class="top-section">
+            <div class="top-films">
+                <h2>Top 5 Rented Films</h2>
                 <ul id="top-5-films" class="list-group"></ul>
             </div>
-
-            <!-- Top 5 Actors Section -->
-            <div class="col-md-6">
-                <h3>Top 5 Actors</h3>
+            <div class="top-actors">
+                <h2>Top 5 Actors</h2>
                 <ul id="top-5-actors" class="list-group"></ul>
             </div>
-        </div>
+        </section>
 
         <!-- Film Details Section -->
-        <div id="film-details-section" class="my-4">
-            <h3>Film Details</h3>
+        <section id="film-details-section" class="details-section">
+            <h2>Film Details:</h2>
             <ul id="film-details" class="list-group"></ul>
-        </div>
+        </section>
 
         <!-- Actor's Top 5 Rented Movies Section -->
-        <div id="actor-details-section" class="my-4">
-            <h3>Actor's Top 5 Rented Movies</h3>
+        <section id="actor-details-section" class="details-section">
+            <h2>Actor's Top 5 Rented Movies:</h2>
             <ul id="actor-top5-films" class="list-group"></ul>
-        </div>
-    </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Sakila Movie Store. All rights reserved.</p>
+    </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            console.log("Document loaded, fetching top 5 films and actors...");
+            // Hide details sections initially
+            document.getElementById('film-details-section').style.display = 'none';
+            document.getElementById('actor-details-section').style.display = 'none';
 
             // Fetch and display top 5 rented films
             fetch('/api/films/top5')
@@ -95,8 +122,11 @@
                                 <li class="list-group-item"><strong>Genre:</strong> ${film.genres || 'N/A'}</li>
                             `;
                             filmDetailsList.innerHTML = details;
+                            document.getElementById('film-details-section').style.display = 'block';
+                            document.getElementById('film-details-section').scrollIntoView({ behavior: 'smooth' });
                         } else {
                             filmDetailsList.innerHTML = '<li class="list-group-item">No details available for this film</li>';
+                            document.getElementById('film-details-section').style.display = 'block';
                         }
                     })
                     .catch(error => {
@@ -118,8 +148,11 @@
                                 li.textContent = filmTitle;
                                 actorTop5FilmsList.appendChild(li);
                             });
+                            document.getElementById('actor-details-section').style.display = 'block';
+                            document.getElementById('actor-details-section').scrollIntoView({ behavior: 'smooth' });
                         } else {
                             actorTop5FilmsList.innerHTML = '<li class="list-group-item">No rented films for this actor</li>';
+                            document.getElementById('actor-details-section').style.display = 'block';
                         }
                     })
                     .catch(error => {
@@ -130,10 +163,6 @@
     </script>
 </body>
 </html>
-
-
-
-
 
 
 

@@ -1,101 +1,157 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Films Page</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h2 {
-            color: #333;
-        }
-        input {
-            margin: 10px 0;
-            padding: 5px;
-            width: 300px;
-        }
-        button {
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        .film-details, .rental-section {
-            margin-top: 20px;
-        }
-    </style>
+    <title>Film Rental Application</title>
+    <!-- Include Bootstrap CSS for styling (optional) -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
+
 <body>
-    <h1>Search Films</h1>
+    <div class="container">
+        <h1>Film Rental</h1>
+        <div class="search-section">
+            <input type="text" id="search" placeholder="Search for a film...">
+            <select id="searchType">
+                <option value="title">Title</option>
+                <option value="description">Description</option>
+            </select>
+            <button onclick="searchFilms()" class="btn btn-primary">Search</button>
+        </div>
 
-    <div>
-        <label for="searchType">Search Type:</label>
-        <select id="searchType">
-            <option value="title">Title</option>
-            <option value="actor">Actor</option>
-            <option value="genre">Genre</option>
-        </select><br>
-        <label for="search">Search by film, actor, or genre:</label><br>
-        <input type="text" id="search" placeholder="Enter name, actor, or genre">
-        <button onclick="searchFilms()">Search</button>
-    </div>
-
-    <div id="search-results">
-        <h2>Search Results:</h2>
-        <ul id="results-list">
-            <!-- Search results will be inserted here dynamically -->
+        <ul id="results-list" class="list-group mt-3">
+            <!-- Search results will be populated here -->
         </ul>
-    </div>
 
-    <div class="film-details" id="film-details">
-        <h2>Film Details</h2>
-        <p id="film-info"></p>
-    </div>
+        <section class="film-details-section mt-5" id="film-details-section" style="display: none;">
+            <h2>Film Details</h2>
+            <ul id="film-details" class="list-group">
+                <!-- Film details will be populated here -->
+            </ul>
+        </section>
 
-    <div class="rental-section" id="rental-section">
-        <h2>Rent this Film</h2>
-        <form onsubmit="rentFilm(event)">
-            <input type="hidden" id="filmId" value="">
-            <label for="customerId">Customer ID:</label><br>
-            <input type="number" id="customerId" placeholder="Enter customer ID" required><br>
-            <label for="staffId">Staff ID:</label><br>
-            <input type="number" id="staffId" placeholder="Enter staff ID" required><br>
-            <button type="submit">Rent Film</button>
-        </form>
+        <!-- Rental Section -->
+        <section class="rental-section mt-4" id="rental-section" style="display: none;">
+            <h2>Rent this Film</h2>
+            <form onsubmit="rentFilm(event)" class="rental-form">
+                <input type="hidden" id="filmId" value="">
+                <div class="form-group">
+                    <label for="customerId">Customer ID:</label>
+                    <input type="number" id="customerId" placeholder="Enter customer ID" required min="1">
+                </div>
+                <div class="form-group">
+                    <label for="staffId">Staff ID:</label>
+                    <input type="number" id="staffId" placeholder="Enter staff ID" required min="1">
+                </div>
+                <!-- Removed Inventory ID Input -->
+                <button type="submit" class="btn btn-success">Rent Film</button>
+            </form>
+        </section>
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Ensure that the rental section is hidden initially
+            document.getElementById('rental-section').style.display = 'none';
+        });
+
         // Function to search for films
         function searchFilms() {
-            const searchQuery = document.getElementById('search').value;
+            const searchQuery = document.getElementById('search').value.trim();
             const searchType = document.getElementById('searchType').value;
 
-            fetch(`/api/films/search?query=${searchQuery}&type=${searchType}`)
-                .then(response => response.json())
+            if (searchQuery === '') {
+                alert('Please enter a search term.');
+                return;
+            }
+
+            console.log(`Searching films by: ${searchType} with query: ${searchQuery}`);
+
+            fetch(`/api/films/search?query=${encodeURIComponent(searchQuery)}&type=${encodeURIComponent(searchType)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Search Results:', data);
                     const resultsList = document.getElementById('results-list');
                     resultsList.innerHTML = '';
+
+                    if (data.length === 0) {
+                        resultsList.innerHTML = '<li class="list-group-item">No films found.</li>';
+                        return;
+                    }
+
                     data.forEach(film => {
                         const li = document.createElement('li');
-                        li.innerHTML = `<a href="#" onclick="viewFilmDetails(${film.filmId})">${film.title}</a>`;
+                        li.classList.add('list-group-item');
+
+                        const link = document.createElement('a');
+                        link.href = '#';
+                        link.textContent = film.title;
+                        link.addEventListener('click', () => viewFilmDetails(film.filmId));
+
+                        li.appendChild(link);
                         resultsList.appendChild(li);
                     });
+                })
+                .catch(error => {
+                    console.error('Error fetching films:', error);
+                    alert('An error occurred while searching for films.');
                 });
         }
 
         // Function to view film details
         function viewFilmDetails(filmId) {
+            console.log('viewFilmDetails called with filmId:', filmId);
             fetch(`/api/films/${filmId}/details`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Film Details:', data);
                     if (data) {
-                        document.getElementById('film-info').innerText = `Title: ${data.title}, Description: ${data.description}, Release Year: ${data.releaseYear}`;
+                        const filmDetailsList = document.getElementById('film-details');
+                        filmDetailsList.innerHTML = '';
+
+                        const actorsList = data.actors && data.actors.length > 0
+                            ? data.actors.map(actor => `${actor.firstName} ${actor.lastName}`).join(', ')
+                            : 'N/A';
+
+                        const genresList = data.genres && data.genres.length > 0
+                            ? data.genres.join(', ')
+                            : 'N/A';
+
+                        const details = `
+                            <li class="list-group-item"><strong>Title:</strong> ${data.title}</li>
+                            <li class="list-group-item"><strong>Description:</strong> ${data.description}</li>
+                            <li class="list-group-item"><strong>Release Year:</strong> ${data.releaseYear}</li>
+                            <li class="list-group-item"><strong>Actors:</strong> ${actorsList}</li>
+                            <li class="list-group-item"><strong>Genre:</strong> ${genresList}</li>
+                        `;
+                        filmDetailsList.innerHTML = details;
+
+                        // Populate the hidden filmId input
                         document.getElementById('filmId').value = filmId;
+                        console.log('Populated filmId:', filmId);
+
+                        // Show rental section
                         document.getElementById('rental-section').style.display = 'block';
+                        console.log('Displayed rental section');
+
+                        // Scroll to film details
+                        document.getElementById('film-details-section').scrollIntoView({ behavior: 'smooth' });
                     } else {
                         alert('Film details not found.');
                     }
+                })
+                .catch(error => {
+                    console.error('Error fetching film details:', error);
+                    alert('An error occurred while fetching film details.');
                 });
         }
 
@@ -104,31 +160,88 @@
             event.preventDefault();
 
             const filmId = document.getElementById('filmId').value;
-            const customerId = document.getElementById('customerId').value;
-            const staffId = document.getElementById('staffId').value;
+            const customerId = document.getElementById('customerId').value.trim();
+            const staffId = document.getElementById('staffId').value.trim();
+
+            // Log individual field values
+            console.log('Film ID:', filmId);
+            console.log('Customer ID:', customerId);
+            console.log('Staff ID:', staffId);
+
+            // Basic validation
+            if (!filmId || !customerId || !staffId) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Additional validation to ensure IDs are positive integers
+            const filmIdNumber = parseInt(filmId, 10);
+            const customerIdNumber = parseInt(customerId, 10);
+            const staffIdNumber = parseInt(staffId, 10);
+
+            if (isNaN(filmIdNumber) || filmIdNumber <= 0) {
+                alert('Please enter a valid Film ID.');
+                return;
+            }
+            if (isNaN(customerIdNumber) || customerIdNumber <= 0) {
+                alert('Please enter a valid Customer ID.');
+                return;
+            }
+            if (isNaN(staffIdNumber) || staffIdNumber <= 0) {
+                alert('Please enter a valid Staff ID.');
+                return;
+            }
+
+            // Prepare rental data without Inventory ID
+            const rentalData = {
+                filmId: filmIdNumber,
+                customerId: customerIdNumber,
+                staffId: staffIdNumber,
+                rentalDate: new Date().toISOString()
+            };
+
+            // Log the rental data for debugging
+            console.log('Rental Data:', rentalData);
 
             fetch('/api/rentals/rent', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    inventoryId: filmId,  // Ensure this matches your backend logic
-                    customerId: customerId,
-                    staffId: staffId,
-                    rentalDate: new Date().toISOString()
-                })
+                body: JSON.stringify(rentalData)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw new Error(errData.message || 'Failed to rent the film.');
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.rentalId) {
                     alert(`Film rented successfully! Rental ID: ${data.rentalId}`);
+                    // Optionally reset the form
+                    document.querySelector('.rental-form').reset();
+                    // Hide rental section
+                    document.getElementById('rental-section').style.display = 'none';
+                    console.log('Rental successful, hidden rental section');
                 } else {
-                    alert('Failed to rent the film.');
+                    throw new Error('Failed to rent the film.');
                 }
+            })
+            .catch(error => {
+                console.error('Error renting film:', error);
+                alert(`Error renting film: ${error.message}`);
             });
         }
     </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
 

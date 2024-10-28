@@ -1,6 +1,7 @@
 package com.CS490.sakila.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnTransformer;
 import java.time.LocalDateTime;
 
 @Entity
@@ -33,6 +34,11 @@ public class Address {
 
     @Column(name = "last_update")
     private LocalDateTime lastUpdate;
+
+    // Spatial column for location with a default value
+    @Column(name = "location", columnDefinition = "POINT")
+    @ColumnTransformer(read = "ST_AsText(location)", write = "ST_GeomFromText(?)")
+    private String location = "POINT(0 0)"; // Default placeholder value
 
     // Getters and Setters
     public int getAddressId() {
@@ -98,5 +104,17 @@ public class Address {
     public void setLastUpdate(LocalDateTime lastUpdate) {
         this.lastUpdate = lastUpdate;
     }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
 }
+
+
+
+
 
